@@ -1,0 +1,17 @@
+{
+  "name": "خبير السيو للمنتجات",
+  "short_name": "خبير السيو",
+  "description": "أداة متخصصة لكتابة أوصاف المنتجات والمقالات متوافقة مع السيو",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

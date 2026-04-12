@@ -1,0 +1,381 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  --font-cairo: var(--font-cairo);
+  --animate-shine: shine 3s infinite;
+}
+
+html, body {
+  width: 100%;
+  position: relative;
+  font-family: var(--font-cairo), sans-serif;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: #f0faf7;
+}
+
+/* ==============================
+   DARK MODE BASE
+   ============================== */
+.dark body { background-color: #0a0f0d; color: #e2e8f0; }
+
+/* ==============================
+   SIDEBAR — Teal Ink (light)
+   ============================== */
+.app-sidebar {
+  background: #0f4c3a;
+  border-color: #155e48;
+}
+.app-sidebar-brand { color: #fff; }
+.app-sidebar-icon {
+  background: #10b981;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+}
+.nav-item {
+  color: rgba(255,255,255,0.55);
+  border-radius: 12px;
+  transition: all 0.18s ease;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-item.active {
+  background: rgba(16,185,129,0.25);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(16,185,129,0.4);
+}
+.nav-item .nav-icon-wrap {
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px;
+  transition: all 0.18s;
+}
+.nav-item.active .nav-icon-wrap {
+  background: #10b981;
+  box-shadow: 0 3px 12px rgba(16,185,129,0.4);
+}
+
+/* ==============================
+   TOP HEADER
+   ============================== */
+.app-topbar {
+  background: rgba(240,250,247,0.88);
+  border-bottom-color: #c9ede3;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.app-topbar-icon { background: #10b981; box-shadow: 0 3px 12px rgba(16,185,129,0.3); }
+
+/* ==============================
+   MAIN AREA
+   ============================== */
+.app-main { background: #f0faf7; }
+
+/* ==============================
+   MOBILE NAV
+   ============================== */
+.app-mobile-nav {
+  background: rgba(255,255,255,0.96);
+  border-color: #c9ede3;
+  box-shadow: 0 -4px 24px rgba(16,185,129,0.08);
+}
+.mobile-nav-item { color: #94a3b8; }
+.mobile-nav-item.active { color: #0f4c3a; }
+.mobile-nav-fab {
+  background: #0f4c3a;
+  box-shadow: 0 6px 24px rgba(15,76,58,0.4);
+}
+.mobile-nav-fab.active {
+  background: linear-gradient(135deg, #10b981, #0f4c3a);
+}
+
+/* ==============================
+   CARDS
+   ============================== */
+.app-card {
+  background: #fff;
+  border-color: #c9ede3;
+  box-shadow: 0 1px 6px rgba(16,185,129,0.05);
+  transition: all 0.2s;
+}
+.app-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 20px rgba(16,185,129,0.1);
+}
+
+/* ==============================
+   INPUTS
+   ============================== */
+.app-input {
+  background: #f0faf7;
+  border-color: #c9ede3;
+  color: #0f4c3a;
+}
+.app-input:focus {
+  background: #fff;
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.1);
+  outline: none;
+}
+.app-input::placeholder { color: #9dc9ba; }
+
+/* ==============================
+   BUTTONS
+   ============================== */
+.app-btn-primary {
+  background: #0f4c3a;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(15,76,58,0.3);
+}
+.app-btn-primary:hover { background: #155e48; box-shadow: 0 6px 24px rgba(15,76,58,0.4); }
+
+.app-btn-accent {
+  background: #10b981;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+}
+.app-btn-accent:hover { background: #0d9668; }
+
+/* ==============================
+   BADGES / TAGS
+   ============================== */
+.brand-badge {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+.brand-tag {
+  background: #ecfdf5;
+  color: #10b981;
+  border: 1px solid #d1fae5;
+}
+
+/* ==============================
+   DARK MODE — Dark Pro
+   ============================== */
+.dark .app-sidebar { background: #0d1a15; border-color: #1a2e25; }
+.dark .app-topbar { background: rgba(13,26,21,0.92); border-bottom-color: #1a2e25; }
+.dark .app-main { background: #0a0f0d; }
+
+.dark .nav-item { color: rgba(255,255,255,0.3); }
+.dark .nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); }
+.dark .nav-item.active { background: rgba(16,185,129,0.12); box-shadow: inset 0 0 0 1px rgba(16,185,129,0.25); }
+.dark .nav-item .nav-icon-wrap { background: rgba(255,255,255,0.04); }
+.dark .nav-item.active .nav-icon-wrap { background: rgba(16,185,129,0.85); }
+
+.dark .app-mobile-nav { background: rgba(13,26,21,0.97); border-color: #1a2e25; box-shadow: 0 -4px 24px rgba(0,0,0,0.4); }
+.dark .mobile-nav-item { color: #3a5545; }
+.dark .mobile-nav-item.active { color: #34d399; }
+.dark .mobile-nav-fab { background: #10b981; box-shadow: 0 6px 24px rgba(16,185,129,0.3); }
+
+.dark .app-card { background: #111f18; border-color: #1a2e25; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.dark .app-card:hover { border-color: #10b981; box-shadow: 0 4px 20px rgba(16,185,129,0.12); }
+
+.dark .app-input { background: #0d1a15; border-color: #1a2e25; color: #e2e8f0; }
+.dark .app-input::placeholder { color: #2e4a3a; }
+.dark .app-input:focus { background: #111f18; border-color: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,0.08); }
+
+.dark .app-btn-primary { background: #10b981; box-shadow: 0 4px 16px rgba(16,185,129,0.2); }
+.dark .app-btn-primary:hover { background: #0d9668; }
+.dark .app-btn-accent { background: rgba(16,185,129,0.15); color: #34d399; box-shadow: none; border: 1px solid rgba(16,185,129,0.2); }
+
+.dark .brand-badge { background: rgba(16,185,129,0.1); color: #34d399; border-color: rgba(16,185,129,0.2); }
+.dark .brand-tag { background: rgba(16,185,129,0.07); color: #34d399; border-color: rgba(16,185,129,0.15); }
+
+/* ==============================
+   RESULT CARDS
+   ============================== */
+.result-card {
+  background: #fff;
+  border: 1px solid #c9ede3;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.05);
+  transition: all 0.2s ease;
+}
+.result-card:hover { box-shadow: 0 6px 20px rgba(16,185,129,0.1); border-color: #10b981; }
+.dark .result-card { background: #111f18; border-color: #1a2e25; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+.dark .result-card:hover { border-color: #10b981; box-shadow: 0 6px 20px rgba(16,185,129,0.1); }
+
+.result-card-title {
+  display: inline-block;
+  background: #ecfdf5;
+  color: #065f46;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1fae5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.dark .result-card-title { background: rgba(16,185,129,0.1); color: #34d399; border-color: rgba(16,185,129,0.2); }
+
+.result-card-body { color: #334155; }
+.dark .result-card-body { color: #cbd5e1; }
+.result-text { font-size: 14px; line-height: 1.75; color: #334155; }
+.dark .result-text { color: #cbd5e1; }
+
+/* ==============================
+   KEYWORD HIGHLIGHT
+   ============================== */
+.keyword-highlight {
+  display: inline-block;
+  background: #ecfdf5;
+  color: #065f46;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 6px;
+  margin: 0 1px;
+  border: 1px solid #d1fae5;
+}
+.dark .keyword-highlight { background: rgba(16,185,129,0.1); color: #34d399; border-color: rgba(16,185,129,0.2); }
+
+/* ==============================
+   SPECS
+   ============================== */
+.specs-list { margin: 0; padding-right: 0; list-style: none; }
+.spec-item { margin-bottom: 12px; line-height: 1.6; color: #334155; display: flex; align-items: flex-start; gap: 8px; }
+.dark .spec-item { color: #cbd5e1; }
+.spec-item::before { content: "•"; color: #10b981; font-weight: bold; }
+.dark .spec-item::before { color: #34d399; }
+.spec-label { display: inline-block; color: #0f4c3a; font-weight: 700; margin-left: 4px; }
+.dark .spec-label { color: #34d399; }
+.spec-value { color: #334155; font-size: 14px; }
+.dark .spec-value { color: #cbd5e1; }
+
+/* ==============================
+   SHINE EFFECT
+   ============================== */
+.shine-effect { position: relative; overflow: hidden; }
+.shine-effect::after {
+  content: "";
+  position: absolute;
+  top: -50%; left: -100%;
+  width: 50%; height: 200%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(30deg);
+  animation: var(--animate-shine);
+}
+
+@keyframes shine {
+  0%   { left: -100%; }
+  20%  { left: 100%;  }
+  100% { left: 100%;  }
+}
+
+@utility animation-delay-2000 { animation-delay: 2s; }
+@utility animation-delay-4000 { animation-delay: 4s; }
+@utility pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Smooth theme transitions */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+[class*="animate-"] { transition: none; }
+
+footer { text-align: center; margin-top: 4rem; }
+
+/* ==============================
+   MOBILE RESPONSIVE FIXES
+   ============================== */
+@media (max-width: 640px) {
+  /* Prevent horizontal scroll on root element instead of html/body */
+  #__next, main { overflow-x: hidden; }
+
+  /* Cards: tighter padding on mobile */
+  .app-card { border-radius: 14px; }
+
+  /* Inputs: proper size on iOS to prevent zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Sidebar: full-screen overlay on mobile */
+  .app-sidebar { width: 100% !important; }
+}
+
+@media (max-width: 1024px) {
+  /* Main content no sidebar offset */
+  .app-main-content { margin-right: 0 !important; }
+}
+
+/* Safe area on notch devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .app-mobile-nav {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Smooth scrolling */
+html { scroll-behavior: smooth; }
+
+/* Better tap highlight on mobile */
+* { -webkit-tap-highlight-color: rgba(16,185,129,0.1); }
+
+/* Prevent text size adjust on orientation change */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* ==============================
+   SWIPE / SLIDE TRANSITIONS
+   ============================== */
+.will-change-transform {
+  will-change: transform, opacity;
+  /* GPU layer for smoother transitions */
+  transform: translateZ(0);
+}
+
+/* Prevent transition flicker on touch */
+@media (hover: none) and (pointer: coarse) {
+  *, *::before, *::after {
+    /* Keep color transitions, but remove all others during touch */
+    transition-property: background-color, border-color, color, box-shadow !important;
+  }
+  .will-change-transform {
+    transition-property: transform, opacity !important;
+  }
+}
+
+/* ==============================
+   DARK MODE — RICHER COLORS
+   ============================== */
+.dark {
+  color-scheme: dark;
+}
+
+/* Slate cards in dark mode */
+.dark .bg-white { background-color: #111f18 !important; }
+.dark .bg-slate-50 { background-color: #0d1a15 !important; }
+.dark .bg-slate-100 { background-color: #162118 !important; }
+
+/* Text */
+.dark .text-slate-900 { color: #f0fdf4 !important; }
+.dark .text-slate-800 { color: #dcfce7 !important; }
+.dark .text-slate-700 { color: #bbf7d0 !important; }
+.dark .text-slate-600 { color: #86efac !important; }
+.dark .text-slate-500 { color: #4ade80 !important; }
+.dark .text-slate-400 { color: #34d399 !important; }
+
+/* Borders in dark */
+.dark .border-slate-100 { border-color: #1a2e25 !important; }
+.dark .border-slate-200 { border-color: #203a2a !important; }
+.dark .border-slate-50  { border-color: #162118 !important; }
+
+/* Inputs in dark */
+.dark input, .dark textarea, .dark select {
+  background-color: #0d1a15;
+  border-color: #1a2e25;
+  color: #f0fdf4;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #2d4a3a;
+}
+.dark input:focus, .dark textarea:focus, .dark select:focus {
+  background-color: #111f18;
+  border-color: #10b981;
+}

@@ -1,0 +1,16 @@
+node_modules/
+.next/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
+# Temp / debug output files
+temp.txt
+results.txt
+snapshot_results.txt
+*.tmp
