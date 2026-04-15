@@ -57,13 +57,13 @@ export default async function BlogPostPage({ params }: Props) {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950" dir="rtl">
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/blog" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
             <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">المدونة</span>
           </Link>
-          <Link href="/" className="text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors flex items-center gap-1">
+          <Link href="https://ap.khabeerseo.com" className="text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors flex items-center gap-1">
             العودة للتطبيق
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </Link>
@@ -112,7 +112,7 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 sm:p-10 text-center border border-emerald-100">
             <h3 className="text-2xl font-bold text-slate-900 mb-4">هل تريد تحسين محتوى موقعك لمحركات البحث؟</h3>
             <p className="text-slate-600 mb-8 max-w-xl mx-auto">استخدم أداة خبير السيو المدعومة بالذكاء الاصطناعي لكتابة مقالات متوافقة مع SEO.</p>
-            <Link href="/" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all">جرّب أداة خبير السيو الآن</Link>
+            <Link href="https://ap.khabeerseo.com" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all">جرّب أداة خبير السيو الآن</Link>
           </div>
         </div>
       </article>

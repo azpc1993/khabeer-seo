@@ -7,7 +7,7 @@ import {
   Loader2, Sparkles, AlertCircle, ShoppingBag, 
   LogOut, History, Settings, BookOpen, CreditCard,
   X, ChevronRight, ChevronLeft, LayoutGrid, Package, Menu,
-  LayoutDashboard, Zap, Bell, Key,
+  LayoutDashboard, Zap, Bell, Key, User as UserIcon,
 } from 'lucide-react'; 
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
@@ -2008,7 +2008,7 @@ ${text}`;
               key={item.id}
               onClick={() => { 
                 if (item.isExternal) {
-                  router.push('/blog');
+                  window.location.href = 'https://khabeerseo.com';
                 } else {
                   goToTab(item.id); 
                   setIsSidebarOpen(false); 

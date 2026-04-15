@@ -29,7 +29,7 @@ export default async function BlogPage() {
             </div>
             <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">خبير السيو</span>
           </div>
-          <Link href="/" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors flex items-center gap-1">
+          <Link href="https://ap.khabeerseo.com" className="text-sm font-medium text-slate-600 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors flex items-center gap-1">
             العودة للتطبيق
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -47,7 +47,7 @@ export default async function BlogPage() {
         {posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post: any) => (
-              <Link href={`/blog/${post.slug.current}`} key={post._id} className="group">
+              <Link href={`/${post.slug.current}`} key={post._id} className="group">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                   <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                     {post.mainImage ? (
