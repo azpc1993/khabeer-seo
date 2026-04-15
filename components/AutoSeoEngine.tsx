@@ -14,7 +14,7 @@ interface OptimizationLog {
   reason: string;
 }
 
-export const AutoSeoEngine: React.FC = () => {
+const AutoSeoEngine: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState(false);
   const [autoApply, setAutoApply] = useState(false);
   const [level, setLevel] = useState<'normal' | 'professional' | 'competitor'>('professional');
@@ -142,3 +142,5 @@ export const AutoSeoEngine: React.FC = () => {
     </div>
   );
 };
+
+export default AutoSeoEngine;

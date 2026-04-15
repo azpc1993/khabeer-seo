@@ -34,7 +34,6 @@ export interface GenerateViewProps {
   plagiarismLoading: boolean;
   plagiarismResult: { score: number; details: string } | null;
   copyToClipboard: () => void; copied: boolean;
-  renderStructuredOutput: () => React.ReactNode;
   copySummary: () => void; summaryCopied: boolean;
   lsi: string; setLsi: (v: string) => void;
   targetAudience: string; setTargetAudience: (v: string) => void;

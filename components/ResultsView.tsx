@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useCharacterCounter } from '../hooks/useCharacterCounter';
+import { decodeUnicode } from '../utils/unicode';
+import { normalizeArabicSeoTerms } from '../utils/arabicNormalizer';
 
 /* ── Types ─────────────────────────────────────────── */
 interface ParsedOutput {
@@ -320,10 +323,51 @@ export default function ResultsView({
 }: ResultsViewProps) {
   const parsed = parseResult(result);
   const keywords = pk.split(',').map(k => k.trim()).filter(Boolean);
-  const displayName     = parsed.productName || rawProductName;
-  const displaySeoTitle = parsed.seoTitle    || externalSeoTitle;
-  const displayMetaDesc = parsed.metaDesc    || externalMetaDesc;
+  
+  // Apply unicode decoding and arabic normalization
+  const displayName     = normalizeArabicSeoTerms(decodeUnicode(parsed.productName || rawProductName));
+  const displaySeoTitle = normalizeArabicSeoTerms(decodeUnicode(parsed.seoTitle    || externalSeoTitle));
+  const displayMetaDesc = normalizeArabicSeoTerms(decodeUnicode(parsed.metaDesc    || externalMetaDesc));
   const recommendations = buildRecommendations(parsed, pk);
+
+  const [localSeoTitle, setLocalSeoTitle] = useState<string | null>(null);
+  const [localMetaDesc, setLocalMetaDesc] = useState<string | null>(null);
+  const [isShorteningTitle, setIsShorteningTitle] = useState(false);
+  const [isShorteningMeta, setIsShorteningMeta] = useState(false);
+
+  const activeSeoTitle = localSeoTitle ?? displaySeoTitle ?? '';
+  const activeMetaDesc = localMetaDesc ?? displayMetaDesc ?? '';
+
+  const titleCounter = useCharacterCounter(stripMarkdown(activeSeoTitle), 0, 55);
+  const metaCounter = useCharacterCounter(stripMarkdown(activeMetaDesc), 140, 155);
+
+  const handleShortenTitle = async () => {
+    setIsShorteningTitle(true);
+    try {
+      const { shortenSeoTitle } = await import('../lib/api');
+      const shortened = await shortenSeoTitle(activeSeoTitle);
+      setLocalSeoTitle(shortened);
+      toast.success('تم تقليص العنوان بنجاح');
+    } catch {
+      toast.error('فشل تقصير العنوان');
+    } finally {
+      setIsShorteningTitle(false);
+    }
+  };
+
+  const handleShortenMeta = async () => {
+    setIsShorteningMeta(true);
+    try {
+      const { shortenMetaDescription } = await import('../lib/api');
+      const shortened = await shortenMetaDescription(activeMetaDesc);
+      setLocalMetaDesc(shortened);
+      toast.success('تم تقصير الوصف بنجاح');
+    } catch {
+      toast.error('فشل تقصير الوصف');
+    } finally {
+      setIsShorteningMeta(false);
+    }
+  };
 
   // SKU — استمر ببناء نفس SKU لنفس المنتج ما لم يتغير الاسم
   const skuRef = useRef<string>('');
@@ -335,12 +379,12 @@ export default function ResultsView({
   const sku = skuRef.current || (displayName ? generateSKU(displayName) : '');
 
   // عنوان فرعي وترويجي مشتق
-  const subTitle   = deriveSubTitle(displayName || '', displayMetaDesc);
+  const subTitle   = deriveSubTitle(displayName || '', activeMetaDesc);
   const promoTitle = derivePromoTitle(displayName || '', parsed.cta || '');
 
   let score = 60;
-  if ((parsed.seoTitle  || '').length >= 40 && (parsed.seoTitle  || '').length <= 65) score += 8;
-  if ((parsed.metaDesc  || '').length >= 100 && (parsed.metaDesc || '').length <= 160) score += 8;
+  if ((activeSeoTitle  || '').length >= 40 && (activeSeoTitle  || '').length <= 65) score += 8;
+  if ((activeMetaDesc  || '').length >= 100 && (activeMetaDesc || '').length <= 160) score += 8;
   if (parsed.slug)   score += 6;
   if (parsed.altText) score += 6;
   if (parsed.cta)    score += 6;
@@ -528,24 +572,50 @@ export default function ResultsView({
       )}
 
       {/* 6. SEO Title */}
-      {displaySeoTitle && (
+      {activeSeoTitle && (
         <Card delay={0.10} className="p-5">
-          <CardHeader icon={Search} title="عنوان السيو (SEO Title)" color="emerald" copyText={stripMarkdown(displaySeoTitle)} copyLabel="عنوان السيو" />
-          <div className="flex items-start gap-3">
-            <p className="text-lg font-black text-slate-900 dark:text-white leading-snug flex-1">{stripMarkdown(displaySeoTitle)}</p>
-            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border shrink-0 ${displaySeoTitle.length <= 65 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>{displaySeoTitle.length} حرف</span>
+          <CardHeader icon={Search} title="عنوان السيو (SEO Title)" color="emerald" copyText={stripMarkdown(activeSeoTitle)} copyLabel="عنوان السيو" />
+          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+            <p className="text-lg font-black text-slate-900 dark:text-white leading-snug flex-1">{stripMarkdown(activeSeoTitle)}</p>
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${titleCounter.isTooLong ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                {titleCounter.length} حرف
+              </span>
+              {titleCounter.isTooLong && (
+                <button onClick={handleShortenTitle} disabled={isShorteningTitle} className="flex items-center gap-1 px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-[10px] font-bold rounded-lg transition-colors disabled:opacity-50">
+                  {isShorteningTitle ? 'جاري التقليص...' : '✂️ تقليص تلقائي'}
+                </button>
+              )}
+            </div>
           </div>
+          {titleCounter.isTooLong && (
+            <p className="text-[10px] text-rose-500 mt-2 font-bold">⚠️ العنوان أطول من 55 حرفاً، قد يتم اقتطاعه في نتائج البحث.</p>
+          )}
         </Card>
       )}
 
       {/* 7. Meta Description */}
-      {displayMetaDesc && (
+      {activeMetaDesc && (
         <Card delay={0.12} className="p-5">
-          <CardHeader icon={Info} title="وصف الميتا (Meta Description)" color="cyan" copyText={stripMarkdown(displayMetaDesc)} copyLabel="وصف الميتا" />
-          <div className="flex items-start gap-3">
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed flex-1">{stripMarkdown(displayMetaDesc)}</p>
-            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border shrink-0 ${displayMetaDesc.length <= 160 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>{displayMetaDesc.length} حرف</span>
+          <CardHeader icon={Info} title="وصف الميتا (Meta Description)" color="cyan" copyText={stripMarkdown(activeMetaDesc)} copyLabel="وصف الميتا" />
+          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed flex-1">{stripMarkdown(activeMetaDesc)}</p>
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${!metaCounter.isWithinRange ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                {metaCounter.length} حرف
+              </span>
+              {!metaCounter.isWithinRange && (
+                <button onClick={handleShortenMeta} disabled={isShorteningMeta} className="flex items-center gap-1 px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 text-[10px] font-bold rounded-lg transition-colors disabled:opacity-50">
+                  {isShorteningMeta ? 'جاري التقصير...' : '✂️ تقصير ذكي'}
+                </button>
+              )}
+            </div>
           </div>
+          {!metaCounter.isWithinRange && (
+            <p className="text-[10px] text-amber-600 mt-2 font-bold">
+              {metaCounter.isTooShort ? '⚠️ الوصف قصير جداً، يُفضل أن يكون بين 140 و 155 حرفاً.' : '⚠️ الوصف طويل جداً، يُفضل أن يكون بين 140 و 155 حرفاً.'}
+            </p>
+          )}
         </Card>
       )}
 
@@ -566,7 +636,7 @@ export default function ResultsView({
         <CardHeader icon={Globe} title="عناصر تحسين محركات البحث" color="emerald" />
         <div className="mb-5">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">معاينة جوجل</p>
-          <GoogleSnippet title={displaySeoTitle} description={displayMetaDesc} />
+          <GoogleSnippet title={activeSeoTitle} description={activeMetaDesc} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {parsed.slug && (
@@ -633,8 +703,8 @@ export default function ResultsView({
       {/* Stats */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'طول العنوان',    value: `${(displaySeoTitle || '').length}`, unit: 'حرف', ok: (displaySeoTitle || '').length >= 40 && (displaySeoTitle || '').length <= 65 },
-          { label: 'طول الميتا',     value: `${(displayMetaDesc || '').length}`, unit: 'حرف', ok: (displayMetaDesc || '').length >= 100 && (displayMetaDesc || '').length <= 160 },
+          { label: 'طول العنوان',    value: `${(activeSeoTitle || '').length}`, unit: 'حرف', ok: !titleCounter.isTooLong },
+          { label: 'طول الميتا',     value: `${(activeMetaDesc || '').length}`, unit: 'حرف', ok: metaCounter.isWithinRange },
           { label: 'كلمات أساسية',   value: `${keywords.length}`,                unit: 'كلمة', ok: keywords.length >= 3 },
           { label: 'نقاط السيو',     value: `${score}`,                          unit: '/100', ok: score >= 70 },
         ].map((s, i) => (

@@ -244,11 +244,25 @@ export default function KeywordGapClient() {
             
             {/* Section A: Quick Summary */}
             <div className="space-y-6">
-              <h3 className="text-2xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
-                <BarChart3 className="w-7 h-7 text-purple-500" />
-                ملخص سريع
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h3 className="text-2xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
+                  <BarChart3 className="w-7 h-7 text-purple-500" />
+                  ملخص سريع
+                </h3>
+                <Link href={{ pathname: '/', query: { tab: 'generate', gap: missingWords.slice(0, 10).map((w: { keyword: string }) => w.keyword).join('، ') } }} passHref>
+                  <button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-200 dark:shadow-none transition-all hover:scale-105 active:scale-95 flex items-center gap-2 text-sm">
+                    <FileText className="w-4 h-4" />
+                    توليد محتوى يسد الفجوة
+                  </button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                  <p className="text-sm font-bold text-slate-500 mb-2">نسبة الفجوة</p>
+                  <p className="text-3xl font-black text-rose-500">
+                    {Math.round((missingWords.length / Math.max(1, missingWords.length + sharedWords.length)) * 100)}%
+                  </p>
+                </div>
                 <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
                   <p className="text-sm font-bold text-slate-500 mb-2">الكلمات المشتركة</p>
                   <p className="text-3xl font-black text-indigo-600">{sharedWords.length}</p>
@@ -263,8 +277,8 @@ export default function KeywordGapClient() {
                 </div>
                 <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-3xl p-6 shadow-sm text-white">
                   <p className="text-sm font-bold text-purple-200 mb-2">أهم فرصة</p>
-                  <p className="text-2xl font-black">{missingWords[0]?.word || 'لا يوجد'}</p>
-                  {missingWords[0] && <p className="text-xs text-purple-200 mt-1">مكررة {missingWords[0].compCount} مرات عند المنافس</p>}
+                  <p className="text-2xl font-black truncate">{missingWords[0]?.word || 'لا يوجد'}</p>
+                  {missingWords[0] && <p className="text-xs text-purple-200 mt-1">مكررة {missingWords[0].compCount} مرات</p>}
                 </div>
               </div>
             </div>

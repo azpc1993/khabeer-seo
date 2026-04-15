@@ -1,11 +1,6 @@
-import dynamic from 'next/dynamic';
+'use client';
 
-const KeywordsClient = dynamic(() => import('./KeywordsClient'));
-
-export const metadata = {
-  title: 'البحث عن الكلمات المفتاحية | خبير السيو',
-  description: 'أداة البحث عن الكلمات المفتاحية لمحتوى متوافق مع السيو.',
-};
+import KeywordsClient from './KeywordsClient';
 
 export default function KeywordsPage() {
   return <KeywordsClient />;

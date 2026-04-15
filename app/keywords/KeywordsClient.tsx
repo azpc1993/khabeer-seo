@@ -9,7 +9,7 @@ import { useNotificationsStore } from '@/store/notificationsStore';
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
-export default function KeywordsPage() {
+export default function KeywordsClient() {
   const [searchTerm, setSearchTerm] = useState('');
   const [status, setStatus] = useState<SearchStatus>('idle');
   const [error, setError] = useState<string | null>(null);

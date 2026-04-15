@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Search,
@@ -17,6 +18,8 @@ import {
 import { toast } from 'sonner'
 import { FeatureGuard } from '@/components/subscription/FeatureGuard'
 import { ResearchResults } from '@/types'
+import { decodeUnicode } from '@/utils/unicode'
+import { normalizeArabicSeoTerms } from '@/utils/arabicNormalizer'
 
 export interface ResearchViewProps {
   researchQuery: string
@@ -97,6 +100,44 @@ const ResearchView: React.FC<ResearchViewProps> = ({
   smartSuggestLoading,
   goToTab,
 }) => {
+  const router = useRouter();
+  const [sortOrder, setSortOrder] = useState<'volume_desc' | 'volume_asc' | 'cpc_desc' | 'cpc_asc' | 'diff_asc' | 'diff_desc'>('volume_desc');
+
+  const handleAddToProject = (kw: string) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('project_keywords') || '[]');
+      if (!existing.includes(kw)) {
+        existing.push(kw);
+        localStorage.setItem('project_keywords', JSON.stringify(existing));
+        toast.success(`تمت إضافة "${kw}" إلى المشروع`);
+      } else {
+        toast.info(`الكلمة "${kw}" موجودة مسبقاً في المشروع`);
+      }
+    } catch {
+      toast.error('فشل الإضافة للمشروع');
+    }
+  };
+
+  const sortedKeywords = React.useMemo(() => {
+    if (!researchResults?.primaryKeywords) return [];
+    return [...researchResults.primaryKeywords].sort((a, b) => {
+      if (sortOrder === 'volume_desc') return (b.volume || 0) - (a.volume || 0);
+      if (sortOrder === 'volume_asc') return (a.volume || 0) - (b.volume || 0);
+      if (sortOrder === 'cpc_desc') return (b.cpc || 0) - (a.cpc || 0);
+      if (sortOrder === 'cpc_asc') return (a.cpc || 0) - (b.cpc || 0);
+      
+      const diffMap: Record<string, number> = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
+      const diffA = diffMap[a.difficulty || 'Medium'] || 2;
+      const diffB = diffMap[b.difficulty || 'Medium'] || 2;
+      if (sortOrder === 'diff_asc') return diffA - diffB;
+      if (sortOrder === 'diff_desc') return diffB - diffA;
+      
+      return 0;
+    });
+  }, [researchResults?.primaryKeywords, sortOrder]);
+
+  const safeText = (text: string | undefined) => normalizeArabicSeoTerms(decodeUnicode(text || ''));
+
   if (!researchResults) {
     return (
       <motion.div
@@ -264,14 +305,15 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
-                      const newPk = pk ? `${pk}, ${item.keyword}` : item.keyword;
+                      const kw = safeText(item.keyword);
+                      const newPk = pk ? `${pk}, ${kw}` : kw;
                       setPk(newPk);
-                      toast.success(`تمت إضافة: ${item.keyword}`);
+                      toast.success(`تمت إضافة: ${kw}`);
                     }}
                     className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-[11px] font-black rounded-xl border border-emerald-100 dark:border-emerald-800/50 hover:bg-emerald-100 transition-all flex items-center gap-1.5"
                   >
                     <Plus size={12} />
-                    {item.keyword}
+                    {safeText(item.keyword)}
                   </motion.button>
                 ))}
               </div>
@@ -287,14 +329,15 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
-                      const newLsi = lsi ? `${lsi}, ${item.keyword}` : item.keyword;
+                      const kw = safeText(item.keyword);
+                      const newLsi = lsi ? `${lsi}, ${kw}` : kw;
                       setLsi(newLsi);
-                      toast.success(`تمت إضافة: ${item.keyword}`);
+                      toast.success(`تمت إضافة: ${kw}`);
                     }}
                     className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-[11px] font-black rounded-xl border border-blue-100 dark:border-blue-800/50 hover:bg-blue-100 transition-all flex items-center gap-1.5"
                   >
                     <Plus size={12} />
-                    {item.keyword}
+                    {safeText(item.keyword)}
                   </motion.button>
                 ))}
               </div>
@@ -309,15 +352,33 @@ const ResearchView: React.FC<ResearchViewProps> = ({
             animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm"
           >
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <div className="w-7 h-7 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="w-7 h-7 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                </div>
+                الكلمات المفتاحية الأساسية (PKs)
+              </h3>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-500">ترتيب حسب:</span>
+                <select 
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'volume_desc' | 'volume_asc' | 'cpc_desc' | 'cpc_asc' | 'diff_asc' | 'diff_desc')}
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-emerald-500/20"
+                >
+                  <option value="volume_desc">حجم البحث (الأعلى أولاً)</option>
+                  <option value="volume_asc">حجم البحث (الأقل أولاً)</option>
+                  <option value="cpc_desc">CPC (الأعلى أولاً)</option>
+                  <option value="cpc_asc">CPC (الأقل أولاً)</option>
+                  <option value="diff_asc">المنافسة (الأسهل أولاً)</option>
+                  <option value="diff_desc">المنافسة (الأصعب أولاً)</option>
+                </select>
               </div>
-              الكلمات المفتاحية الأساسية (PKs)
-            </h3>
+            </div>
 
             <div className="space-y-3">
-              {researchResults.primaryKeywords?.map((item, i) => (
+              {sortedKeywords.map((item, i) => (
                 <motion.div 
                   key={i} 
                   initial={{ opacity: 0, y: 10 }}
@@ -326,17 +387,18 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                   className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-emerald-200 dark:hover:border-emerald-700 hover:bg-white dark:hover:bg-slate-700 transition-all group"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-slate-900 dark:text-white text-sm">{item.keyword}</span>
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">{safeText(item.keyword)}</span>
                     <div className="flex items-center gap-1">
-                      <CopyKwBtn text={item.keyword} />
+                      <CopyKwBtn text={safeText(item.keyword)} />
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         type="button"
                         onClick={() => {
-                          const newPk = pk ? `${pk}, ${item.keyword}` : item.keyword
+                          const kw = safeText(item.keyword);
+                          const newPk = pk ? `${pk}, ${kw}` : kw;
                           setPk(newPk)
-                          toast.success(`تمت إضافة: ${item.keyword}`)
+                          toast.success(`تمت إضافة: ${kw}`)
                         }}
                         className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
                         title="إضافة إلى الكلمات الأساسية"
@@ -347,17 +409,17 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-4 gap-1.5 mb-3">
                     <div className="bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
-                      <p className="text-[9px] text-slate-400 mb-0.5 font-bold">مرات الظهور</p>
+                      <p className="text-[9px] text-slate-400 mb-0.5 font-bold">حجم البحث الشهري</p>
                       <p className="text-xs font-bold text-slate-800 dark:text-white">{item.volume?.toLocaleString('ar-SA') || '-'}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
-                      <p className="text-[9px] text-slate-400 mb-0.5 font-bold">الصعوبة</p>
+                      <p className="text-[9px] text-slate-400 mb-0.5 font-bold">المنافسة</p>
                       <p className={`text-xs font-bold ${difficultyColor(item.difficulty)}`}>{difficultyLabel(item.difficulty)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
-                      <p className="text-[9px] text-slate-400 mb-0.5 font-bold">سعر النقرة</p>
+                      <p className="text-[9px] text-slate-400 mb-0.5 font-bold">CPC</p>
                       <p className="text-xs font-bold text-slate-800 dark:text-white">{item.cpc ? `${item.cpc} ر.س` : '-'}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
@@ -367,6 +429,23 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                         <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{trendLabel(item.trend)}</p>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-600/50">
+                    <button
+                      onClick={() => {
+                        router.push(`/?tab=generate&keyword=${encodeURIComponent(safeText(item.keyword))}`);
+                      }}
+                      className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 dark:text-emerald-300 text-[11px] font-bold py-1.5 rounded-lg transition-colors"
+                    >
+                      تحليل الكلمة
+                    </button>
+                    <button
+                      onClick={() => handleAddToProject(safeText(item.keyword))}
+                      className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300 text-[11px] font-bold py-1.5 rounded-lg transition-colors"
+                    >
+                      إضافة للمشروع
+                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -395,17 +474,18 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-emerald-200 dark:hover:border-emerald-700 hover:bg-white dark:hover:bg-slate-700 transition-all group"
                   >
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 flex-1 ml-2">{item.keyword}</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 flex-1 ml-2">{safeText(item.keyword)}</span>
                     <div className="flex items-center gap-1 shrink-0">
-                      <CopyKwBtn text={item.keyword} />
+                      <CopyKwBtn text={safeText(item.keyword)} />
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         type="button"
                         onClick={() => {
-                          const newLsi = lsi ? `${lsi}, ${item.keyword}` : item.keyword
+                          const kw = safeText(item.keyword);
+                          const newLsi = lsi ? `${lsi}, ${kw}` : kw;
                           setLsi(newLsi)
-                          toast.success(`تمت إضافة: ${item.keyword}`)
+                          toast.success(`تمت إضافة: ${kw}`)
                         }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
                         title="إضافة إلى LSI"
@@ -435,17 +515,17 @@ const ResearchView: React.FC<ResearchViewProps> = ({
                 <div className="space-y-4">
                   <div>
                     <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">النية الرئيسية</p>
-                    <p className="text-sm text-emerald-900 dark:text-emerald-100 leading-relaxed font-medium">{researchResults.searchIntent.intent}</p>
+                    <p className="text-sm text-emerald-900 dark:text-emerald-100 leading-relaxed font-medium">{safeText(researchResults.searchIntent.intent)}</p>
                   </div>
                   <div className="h-px w-full bg-emerald-200/50 dark:bg-emerald-800/50"></div>
                   <div>
                     <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">الجمهور المستهدف</p>
-                    <p className="text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed">{researchResults.searchIntent.audience}</p>
+                    <p className="text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed">{safeText(researchResults.searchIntent.audience)}</p>
                   </div>
                   <div className="h-px w-full bg-emerald-200/50 dark:bg-emerald-800/50"></div>
                   <div>
                     <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">استراتيجية المحتوى</p>
-                    <p className="text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed">{researchResults.searchIntent.strategy}</p>
+                    <p className="text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed">{safeText(researchResults.searchIntent.strategy)}</p>
                   </div>
                 </div>
               </motion.div>

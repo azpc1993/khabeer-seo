@@ -2,52 +2,39 @@
 
 import dynamic from 'next/dynamic';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { 
-  Loader2, Send, Copy, Sparkles, AlertCircle, ShoppingBag, 
-  Search, 
-  LogIn, UserPlus, LogOut, History, Key, Mail, User as UserIcon,
-  Settings, BookOpen, CreditCard,
+  Loader2, Sparkles, AlertCircle, ShoppingBag, 
+  LogOut, History, Settings, BookOpen, CreditCard,
   X, ChevronRight, ChevronLeft, LayoutGrid, Package, Menu,
-  LayoutDashboard, Zap, Globe, Info, Bell,
-  FileText, Tag, AlignRight, Award,
+  LayoutDashboard, Zap, Bell, Key,
 } from 'lucide-react'; 
-import type { LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 // Dynamic Imports for Views
-const ViewSkeleton = () => (
-  <div className="w-full min-h-[60vh] flex items-center justify-center">
-    <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center animate-pulse">
-      <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  </div>
-);
+import { AuthOverlay } from '@/components/auth/AuthOverlay';
 
-const HomeView = dynamic(() => import('@/components/views/HomeView'), { ssr: false, loading: ViewSkeleton });
-const AutoSeoView = dynamic(() => import('@/app/auto-seo/page'), { ssr: false, loading: ViewSkeleton });
-const GenerateView = dynamic(() => import('@/components/views/GenerateView'), { ssr: false, loading: ViewSkeleton });
-const ResearchView = dynamic(() => import('@/components/views/ResearchView'), { ssr: false, loading: ViewSkeleton });
-const ProductView = dynamic(() => import('@/components/ProductTrackingView'), { ssr: false, loading: ViewSkeleton });
-const ToolsView = dynamic(() => import('@/components/views/ToolsView'), { ssr: false, loading: ViewSkeleton });
-const ProfileView = dynamic(() => import('@/components/ProfileView'), { ssr: false, loading: ViewSkeleton });
-const GuideView = dynamic(() => import('@/components/views/GuideView'), { ssr: false, loading: ViewSkeleton });
-const HistoryView = dynamic(() => import('@/components/HistoryView'), { ssr: false, loading: ViewSkeleton });
-const SettingsView = dynamic(() => import('@/components/SettingsView'), { ssr: false, loading: ViewSkeleton });
-const PricingView = dynamic(() => import('@/components/views/PricingView'), { ssr: false, loading: ViewSkeleton });
-const SallaProductDesc = dynamic(() => import('@/components/SallaProductDesc'), { ssr: false });
-const GoogleSnippetPreview = dynamic(() => import('@/components/GoogleSnippetPreview').then(mod => mod.GoogleSnippetPreview), { ssr: false });
+const HomeView = dynamic(() => import('@/components/views/HomeView'), { ssr: false });
+const AutoSeoView = dynamic(() => import('@/app/auto-seo/page'), { ssr: false });
+const GenerateView = dynamic(() => import('@/components/views/GenerateView'), { ssr: false });
+const ResearchView = dynamic(() => import('@/components/views/ResearchView'), { ssr: false });
+const ProductView = dynamic(() => import('@/components/ProductTrackingView'), { ssr: false });
+const ToolsView = dynamic(() => import('@/components/views/ToolsView'), { ssr: false });
+const ProfileView = dynamic(() => import('@/components/ProfileView'), { ssr: false });
+const GuideView = dynamic(() => import('@/components/views/GuideView'), { ssr: false });
+const HistoryView = dynamic(() => import('@/components/HistoryView'), { ssr: false });
+const SettingsView = dynamic(() => import('@/components/SettingsView'), { ssr: false });
+const PricingView = dynamic(() => import('@/components/views/PricingView'), { ssr: false });
 
 // Shared Components & Utils
 import { Icon } from '@/components/Common';
-import { MeshBackground, SoftSolidCard, CrystalCard, PrimaryButton } from '@/components/EliteUI';
+import { MeshBackground } from '@/components/EliteUI';
 import { callGeminiAPI, handleGeminiError } from '@/lib/api';
 import { formatProjectName } from '@/lib/utils';
-import { copyRichTextToClipboard, stripHtmlTags, formatContentForSalla } from '@/lib/clipboard';
+import { copyRichTextToClipboard, formatContentForSalla } from '@/lib/clipboard';
 import { useAtom } from 'jotai';
 import { subscriptionAtom, usageAtom } from '@/store/subscriptionStore';
 import { subscriptionService } from '@/services/subscriptionService';
@@ -70,6 +57,8 @@ interface BeforeInstallPromptEvent extends Event {
 const isSupabaseConfigured = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export default function SEOApp() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { unreadCount, addNotification } = useNotificationsStore();
   const [profileUsername, setProfileUsername] = useState('');
   const [profilePassword, setProfilePassword] = useState('');
@@ -164,11 +153,6 @@ export default function SEOApp() {
   }, [fetchHistory, fetchDailyUsage]);
 
   // Auth States
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authConfirmPassword, setAuthConfirmPassword] = useState('');
-  const [authUsername, setAuthUsername] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
@@ -453,6 +437,31 @@ export default function SEOApp() {
       setShowTour(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!searchParams) return;
+    
+    const keyword = searchParams.get('keyword');
+    const competitor = searchParams.get('competitor');
+    const gap = searchParams.get('gap');
+    
+    if (keyword) {
+      setProductName(keyword);
+      setPk(keyword);
+      setActiveTab('generate');
+      router.replace('/?tab=generate', { scroll: false });
+    } else if (competitor) {
+      setTargetKeywords(competitor);
+      setCompetitorInfo('تم تحليل المنافس واستخراج هذه الكلمات للتركيز عليها والتفوق عليه.');
+      setActiveTab('generate');
+      router.replace('/?tab=generate', { scroll: false });
+    } else if (gap) {
+      setTargetKeywords(gap);
+      setCompetitorInfo('هذه الكلمات مفقودة في محتواك ويستخدمها المنافس. استخدمها لسد الفجوة.');
+      setActiveTab('generate');
+      router.replace('/?tab=generate', { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const checkPlagiarism = async () => {
     if (!result) return;
@@ -1041,19 +1050,52 @@ export default function SEOApp() {
             }
             
             // Load subscription and usage
-            const userSub = await subscriptionService.getUserSubscription(currentUser.id);
-            if (userSub) {
-              setSubscription(userSub);
-            } else {
-              // If no subscription, start the 7-day trial of advanced plan automatically
-              await subscriptionService.startTrial(currentUser.id, 'advanced');
-              const newSub = await subscriptionService.getUserSubscription(currentUser.id);
-              if (newSub) setSubscription(newSub);
+            try {
+              const { data: subData, error: subError } = await supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .limit(1)
+                .maybeSingle();
+
+              if (subError) {
+                // Mock subscription if table doesn't exist
+                setSubscription({
+                  id: 'mock-sub',
+                  user_id: currentUser.id,
+                  plan_id: 'advanced',
+                  status: 'active',
+                  current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                  trial_used: true,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
+              } else if (subData) {
+                setSubscription(subData);
+              } else {
+                // Only start trial if we successfully queried and found NO subscription
+                await subscriptionService.startTrial(currentUser.id, 'advanced');
+                const newSub = await subscriptionService.getUserSubscription(currentUser.id);
+                if (newSub) setSubscription(newSub);
+              }
+            } catch (err) {
+              console.error('Error in subscription flow:', err);
             }
 
             const userUsage = await subscriptionService.getUserUsage(currentUser.id);
             if (userUsage) {
               setUsage(userUsage);
+            } else {
+              // Mock usage if table doesn't exist
+              setUsage({
+                id: 'mock-usage',
+                user_id: currentUser.id,
+                generations_count: 0,
+                competitor_analysis_count: 0,
+                keyword_research_count: 0,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
             }
 
             fetchHistoryRef.current?.();
@@ -1099,7 +1141,7 @@ export default function SEOApp() {
       console.error('Error initializing auth listener:', err);
       setIsAuthReady(true);
     }
-  }, [fetchHistoryRef, fetchDailyUsageRef]);
+  }, [fetchHistoryRef, fetchDailyUsageRef, setSubscription, setUsage]);
 
   // Auto-adjust textarea height
   useEffect(() => {
@@ -1178,14 +1220,13 @@ export default function SEOApp() {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (email: string, pass: string) => {
     setAuthLoading(true);
     setAuthError('');
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email: authEmail,
-        password: authPassword,
+        email,
+        password: pass,
       });
       if (error) throw error;
       setActiveTab('dashboard');
@@ -1196,21 +1237,16 @@ export default function SEOApp() {
     setAuthLoading(false);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (authPassword !== authConfirmPassword) {
-      setAuthError('كلمات المرور غير متطابقة');
-      return;
-    }
+  const handleSignup = async (email: string, pass: string, username: string) => {
     setAuthLoading(true);
     setAuthError('');
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: authEmail,
-        password: authPassword,
+        email,
+        password: pass,
         options: {
           data: {
-            username: authUsername,
+            username,
           }
         }
       });
@@ -1221,7 +1257,7 @@ export default function SEOApp() {
         await supabase.from('users').upsert({
           id: data.user.id,
           email: data.user.email,
-          username: authUsername,
+          username,
           created_at: new Date().toISOString(),
           dashboardConfig: dashboardConfig
         });
@@ -1234,12 +1270,11 @@ export default function SEOApp() {
     setAuthLoading(false);
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleResetPassword = async (email: string) => {
     setAuthLoading(true);
     setAuthError('');
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(authEmail);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
       setAuthError('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.');
     } catch (error: unknown) {
@@ -1876,273 +1911,7 @@ ${text}`;
   };
 
 
-  const renderStructuredOutput = () => {
-    const labels = [
-      'اسم المنتج:',
-      'اسم المنتج التسويقي:',
-      'عنوان السيو:',
-      'وصف الميتا:',
-      'وصف المنتج:',
-      'نص المحتوى (وصف المنتج/مقال/وصف فئة):',
-      'المواصفات:',
-      'النقاط الرئيسية/المواصفات:',
-      'نقاط التميز التنافسية:',
-      'Slug URL (بالعربية):',
-      'نص Alt للصورة:',
-      'دعوة لاتخاذ إجراء (CTA):'
-    ];
-
-    const parsed: Record<string, string> = {};
-
-    labels.forEach(label => {
-      if (result.includes(label)) {
-        const start = result.indexOf(label) + label.length;
-        let end = result.length;
-        
-        labels.forEach(nextLabel => {
-          const nextIdx = result.indexOf(nextLabel, start);
-          if (nextIdx !== -1 && nextIdx < end) {
-            end = nextIdx;
-          }
-        });
-
-        let value = result.substring(start, end).trim();
-        
-        // Clean surrounding ** markers if they wrap the entire value
-        while ((value.startsWith('**') && value.endsWith('**')) || (value.startsWith('"') && value.endsWith('"'))) {
-          if (value.startsWith('**') && value.endsWith('**')) {
-            value = value.substring(2, value.length - 2).trim();
-          } else if (value.startsWith('"') && value.endsWith('"')) {
-            value = value.substring(1, value.length - 1).trim();
-          }
-        }
-        
-        parsed[label] = value;
-      }
-    });
-
-    const productName = parsed['اسم المنتج:'] || parsed['اسم المنتج التسويقي:'];
-    const productDesc = parsed['وصف المنتج:'] || parsed['نص المحتوى (وصف المنتج/مقال/وصف فئة):'];
-    const specs = parsed['المواصفات:'] || parsed['النقاط الرئيسية/المواصفات:'];
-    const usps = parsed['نقاط التميز التنافسية:'];
-    const seoTitle = parsed['عنوان السيو:'];
-    const metaDesc = parsed['وصف الميتا:'];
-    const slug = parsed['Slug URL (بالعربية):'];
-    const altText = parsed['نص Alt للصورة:'];
-    const cta = parsed['دعوة لاتخاذ إجراء (CTA):'];
-
-    const SectionCard = ({ 
-      title, 
-      content, 
-      onCopy, 
-      isLong = true, 
-      icon: SectionIcon = FileText,
-      color = "emerald"
-    }: { 
-      title: string, 
-      content: string, 
-      onCopy: () => void, 
-      isLong?: boolean,
-      icon?: LucideIcon,
-      color?: string
-    }) => {
-      const CardComponent = isLong ? SoftSolidCard : CrystalCard;
-      
-      return (
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-full"
-        >
-          <CardComponent className={`group relative border-none shadow-sm hover:shadow-md transition-all duration-500 overflow-hidden ${!isLong ? 'py-4 px-6' : ''}`}>
-            <div className={`flex items-center justify-between ${isLong ? 'mb-5 pb-4 border-b border-slate-50/80' : 'mb-2'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2 bg-${color}-50 text-${color}-500 rounded-xl`}>
-                  <SectionIcon className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-black text-slate-800 tracking-tight">
-                  {title}
-                </h3>
-              </div>
-              <button 
-                onClick={onCopy}
-                className={`p-2.5 bg-${color}-50 text-${color}-600 rounded-xl hover:bg-${color}-100 transition-all active:scale-90 shadow-sm`}
-                title={`نسخ ${title}`}
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-            </div>
-            <div className={`prose prose-slate max-w-none prose-p:leading-relaxed prose-strong:text-red-600 prose-strong:font-black prose-strong:bg-red-50 prose-strong:px-1.5 prose-strong:py-0.5 prose-strong:rounded-md prose-ul:list-disc prose-ul:ps-5 prose-li:mb-2 prose-li:text-slate-700 ${isLong ? 'text-base' : 'text-lg font-black text-slate-800'}`}>
-              <Markdown remarkPlugins={[remarkGfm]}>{highlightText(stripHtmlTags(content), pk.split(','))}</Markdown>
-            </div>
-          </CardComponent>
-        </motion.div>
-      );
-    };
-
-    return (
-      <div className="space-y-6 pb-10">
-        <div className="flex items-center justify-between mb-8">
-          <CrystalCard className="py-3 px-6 border-none shadow-sm flex items-center gap-3">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-sm font-black text-slate-700">نتائج تحليل السيو الذكي</span>
-          </CrystalCard>
-          
-          <PrimaryButton 
-            onClick={() => copyAll(result)} 
-            className="py-3 px-6 text-sm"
-          >
-            <div className="flex items-center gap-2">
-              <Copy className="w-4 h-4" />
-              <span>نسخ جميع النتائج</span>
-            </div>
-          </PrimaryButton>
-        </div>
-
-        {/* 1. Product Name - Short -> CrystalCard */}
-        {productName && (
-          <SectionCard 
-            title="اسم المنتج" 
-            content={productName} 
-            onCopy={() => copySection(productName, 'اسم المنتج')} 
-            isLong={false}
-            icon={Tag}
-            color="emerald"
-          />
-        )}
-
-        {/* 2. Product Description + Specifications - Long -> SoftSolidCard */}
-        {(productDesc || specs) && (
-          <SectionCard 
-            title="وصف المنتج والمواصفات" 
-            content={`${productDesc || ''}\n\n${specs ? `### المواصفات الفنية:\n${specs}` : ''}`} 
-            onCopy={() => {
-              const combined = `${productDesc || ''}\n\nالمواصفات:\n${specs || ''}`;
-              copySection(combined, 'الوصف والمواصفات');
-            }} 
-            icon={AlignRight}
-            color="purple"
-          />
-        )}
-
-        {/* 3. USPs - Long -> SoftSolidCard */}
-        {usps && (
-          <SectionCard 
-            title="نقاط التميز التنافسية (USPs)" 
-            content={usps} 
-            onCopy={() => copySection(usps, 'نقاط التميز')} 
-            icon={Award}
-            color="amber"
-          />
-        )}
-
-        {/* 4. SEO Title - Short -> CrystalCard */}
-        {seoTitle && (
-          <SectionCard 
-            title="عنوان السيو (SEO Title)" 
-            content={seoTitle} 
-            onCopy={() => copySection(seoTitle, 'عنوان السيو')} 
-            isLong={false}
-            icon={Search}
-            color="emerald"
-          />
-        )}
-
-        {/* 5. Meta Description - Long -> SoftSolidCard */}
-        {metaDesc && (
-          <SectionCard 
-            title="وصف الميتا (Meta Description)" 
-            content={metaDesc} 
-            onCopy={() => copySection(metaDesc, 'وصف الميتا')} 
-            icon={Info}
-            color="cyan"
-          />
-        )}
-
-        {/* 6, 7, 8. SEO Elements & Preview */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full"
-        >
-          <SoftSolidCard className="border-none shadow-sm hover:shadow-md transition-all duration-500 p-8">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
-              <h3 className="text-lg font-black text-slate-800 flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 text-emerald-500 rounded-xl">
-                  <Globe className="w-5 h-5" />
-                </div>
-                عناصر السيو الإضافية والمعاينة
-              </h3>
-              <div className="flex items-center gap-2">
-                <SallaProductDesc aiOutput={productDesc || ''} specifications={specs || ''} primaryKeywords={pk.split(',')} />
-                <button 
-                  onClick={() => {
-                    const combined = `${productDesc || ''}\n\nالمواصفات:\n${specs || ''}`;
-                    copySection(combined, 'الوصف والمواصفات');
-                  }}
-                  className="p-3 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-all active:scale-90"
-                  title="نسخ الوصف والمواصفات معاً"
-                >
-                  <Copy className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="mb-12">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 mr-1">معاينة نتيجة البحث في جوجل</h4>
-              <CrystalCard className="border-none shadow-inner bg-slate-50/30 p-6">
-                <GoogleSnippetPreview 
-                  title={seoTitle || 'عنوان السيو هنا'} 
-                  description={metaDesc || 'وصف الميتا هنا'} 
-                  url="https://example.com/product" 
-                  onTitleChange={handleTitleChange}
-                  onDescriptionChange={handleDescriptionChange}
-                />
-              </CrystalCard>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {slug && (
-                <CrystalCard className="group p-5 bg-slate-50/50 border-none hover:bg-white hover:shadow-sm transition-all duration-300">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">الرابط الصديق (Slug)</h4>
-                    <button onClick={() => copySection(slug, 'Slug URL')} className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <p className="text-sm font-black text-slate-700 break-all">{slug}</p>
-                </CrystalCard>
-              )}
-              {altText && (
-                <CrystalCard className="group p-5 bg-slate-50/50 border-none hover:bg-white hover:shadow-sm transition-all duration-300">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">النص البديل (Alt Text)</h4>
-                    <button onClick={() => copySection(altText, 'نص Alt')} className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <p className="text-sm font-black text-slate-700">{altText}</p>
-                </CrystalCard>
-              )}
-              {cta && (
-                <CrystalCard className="group p-5 bg-slate-50/50 border-none hover:bg-white hover:shadow-sm transition-all duration-300">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">عبارة الحث (CTA)</h4>
-                    <button onClick={() => copySection(cta, 'CTA')} className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <p className="text-sm font-black text-slate-700">{cta}</p>
-                </CrystalCard>
-              )}
-            </div>
-          </SoftSolidCard>
-        </motion.div>
-      </div>
-    );
-  };
+  // renderStructuredOutput removed as it is now handled by StructuredOutput component or ResultsView
 
   // Show skeleton instead of full-screen spinner for instant perceived load
   if (!mounted) {
@@ -2176,127 +1945,13 @@ ${text}`;
 
   if (!user) {
     return (
-      <main className="min-h-screen p-4 md:p-8 flex items-center justify-center bg-slate-50">
-        <div 
-          className="w-full max-w-md app-card border rounded-2xl shadow-xl p-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-700 text-white mb-4 shadow-lg shadow-emerald-100">
-              <Icon icon={Sparkles} className="w-8 h-8" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">مرحباً بك في خبير السيو</h1>
-            <p className="text-slate-500 mt-2">سجل دخولك للبدء في توليد المحتوى</p>
-          </div>
-
-          {authError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 text-sm">
-              <Icon icon={AlertCircle} className="w-5 h-5 mt-0.5 shrink-0" />
-              <p>{authError}</p>
-            </div>
-          )}
-
-          <form onSubmit={authMode === 'login' ? handleLogin : authMode === 'signup' ? handleSignup : handleResetPassword} className="space-y-4">
-            {authMode === 'signup' && (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <Icon icon={UserIcon} className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  اسم المستخدم
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={authUsername}
-                  onChange={(e) => setAuthUsername(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
-                  placeholder="أدخل اسم المستخدم"
-                />
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Icon icon={Mail} className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                البريد الإلكتروني
-              </label>
-              <input
-                type="email"
-                required
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
-                placeholder="email@example.com"
-              />
-            </div>
-
-            {authMode !== 'reset' && (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <Icon icon={Key} className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  كلمة المرور
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
-                  placeholder="••••••••"
-                />
-              </div>
-            )}
-
-            {authMode === 'signup' && (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <Icon icon={Key} className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  تأكيد كلمة المرور
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={authConfirmPassword}
-                  onChange={(e) => setAuthConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
-                  placeholder="••••••••"
-                />
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-100 transition-all flex items-center justify-center gap-2 mt-6"
-            >
-              {authLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                <>
-                  <Icon icon={authMode === 'login' ? LogIn : authMode === 'signup' ? UserPlus : Send} className="w-5 h-5" />
-                  {authMode === 'login' ? 'تسجيل الدخول' : authMode === 'signup' ? 'إنشاء حساب' : 'إرسال رابط الاستعادة'}
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-8 pt-6 border-t border-white/10 text-center space-y-3">
-            {authMode === 'login' ? (
-              <>
-                <button onClick={() => setAuthMode('signup')} className="text-emerald-600 font-semibold hover:underline block w-full">
-                  ليس لديك حساب؟ سجل الآن
-                </button>
-                <button onClick={() => setAuthMode('reset')} className="text-slate-500 text-sm hover:underline block w-full">
-                  نسيت كلمة المرور؟
-                </button>
-              </>
-            ) : (
-              <button onClick={() => setAuthMode('login')} className="text-emerald-600 font-semibold hover:underline block w-full">
-                لديك حساب بالفعل؟ سجل دخولك
-              </button>
-            )}
-            <div className="pt-4 text-slate-400 text-xs font-bold">
-              خبير السيو / أبو شيماء
-            </div>
-          </div>
-        </div>
-      </main>
+      <AuthOverlay
+        onLogin={handleLogin}
+        onSignup={handleSignup}
+        onResetPassword={handleResetPassword}
+        loading={authLoading}
+        error={authError}
+      />
     );
   }
 
@@ -2344,13 +1999,21 @@ ${text}`;
             { id: 'research', icon: Key, label: 'أداة الكلمات' },
             { id: 'tools', icon: LayoutGrid, label: 'الأدوات' },
             { id: 'guide', icon: BookOpen, label: 'دليل السيو' },
+            { id: 'blog', icon: BookOpen, label: 'المدونة', isExternal: true },
             { id: 'history', icon: History, label: 'سجل المحفوظات' },
             { id: 'pricing', icon: CreditCard, label: 'الأسعار والاشتراك' },
             { id: 'profile', icon: UserIcon, label: 'الملف الشخصي' },
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => { goToTab(item.id); setIsSidebarOpen(false); }}
+              onClick={() => { 
+                if (item.isExternal) {
+                  router.push('/blog');
+                } else {
+                  goToTab(item.id); 
+                  setIsSidebarOpen(false); 
+                }
+              }}
               className={`group relative w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-black transition-all duration-300 ${
                 activeTab === item.id 
                   ? 'bg-emerald-500/10 text-emerald-400 shadow-sm' 
@@ -2542,7 +2205,7 @@ ${text}`;
       </nav>
 
       {/* Main Content Area */}
-      <div className={`flex-1 ${activeTab === 'product' ? 'lg:mr-0' : isSidebarExpanded ? 'lg:mr-72' : 'lg:mr-20'} min-h-screen pb-24 lg:pb-8 pt-0 lg:pt-0 px-0 sm:px-0 app-main transition-all duration-500`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className={`flex-1 ${activeTab === 'product' ? 'lg:mr-0' : isSidebarExpanded ? 'lg:mr-72' : 'lg:mr-20'} min-h-screen pb-24 lg:pb-8 pt-20 lg:pt-0 px-0 sm:px-0 app-main transition-all duration-500`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {/* Desktop Top Header */}
         <header className={`${activeTab === 'product' ? 'hidden' : 'hidden lg:flex'} sticky top-0 z-20 h-24 app-topbar border-b px-12 items-center justify-between bg-white/80 backdrop-blur-2xl dark:bg-slate-900/80`}>
           <div className="flex items-center gap-8">
@@ -2736,7 +2399,6 @@ ${text}`;
               plagiarismResult={plagiarismResult}
               copyToClipboard={copyToClipboard}
               copied={copied}
-              renderStructuredOutput={renderStructuredOutput}
               copySummary={copySummary}
               summaryCopied={summaryCopied}
               suggestSmartProductName={suggestSmartProductName}

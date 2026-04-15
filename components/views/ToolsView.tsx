@@ -12,6 +12,7 @@ import { useAtom } from 'jotai';
 import { usageAtom } from '@/store/subscriptionStore';
 import { subscriptionService } from '@/services/subscriptionService';
 import { supabase } from '@/lib/supabase';
+import { MetaTitleGenerator } from './MetaTitleGenerator';
 
 interface ToolsViewProps {
   goToTab: (tab: string) => void;
@@ -158,6 +159,10 @@ const ToolsView: React.FC<ToolsViewProps> = ({ goToTab, activeTool, setActiveToo
     );
   }
 
+  if (activeTool === 'meta-titles') {
+    return <MetaTitleGenerator setActiveTool={setActiveTool} />;
+  }
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-[#F8FAFC] dark:bg-slate-950 min-h-full">
       {/* CTA Header */}
@@ -290,6 +295,24 @@ const ToolsView: React.FC<ToolsViewProps> = ({ goToTab, activeTool, setActiveToo
             </div>
           </motion.div>
         </FeatureGuard>
+
+        {/* Meta Title Generator */}
+        <motion.div
+          whileHover={{ y: -5 }}
+          className="group relative bg-white dark:bg-slate-800 rounded-3xl p-5 md:p-8 shadow-sm border border-slate-100 dark:border-slate-700 transition-all flex flex-col h-full cursor-pointer overflow-hidden hover:shadow-2xl hover:shadow-cyan-500/10 hover:border-cyan-200 dark:hover:border-cyan-800"
+          onClick={() => setActiveTool('meta-titles')}
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-bl-full -z-10 transition-transform group-hover:scale-110" />
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 text-cyan-600 flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-inner shrink-0">
+            <Icon icon={LayoutGrid} className="w-6 h-6 md:w-7 md:h-7" />
+          </div>
+          <h3 className="text-lg md:text-xl font-black text-slate-900 dark:text-white mb-2 md:mb-3 tracking-tight">توليد العناوين الوصفية</h3>
+          <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-xs md:text-sm flex-grow">توليد عناوين Meta Titles جذابة ومتوافقة مع السيو لزيادة النقر.</p>
+          <div className="mt-4 md:mt-6 flex items-center gap-2 text-cyan-600 font-black text-[10px] md:text-xs uppercase tracking-widest group-hover:-translate-x-1 transition-transform">
+            <span>ابدأ التوليد</span>
+            <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" />
+          </div>
+        </motion.div>
 
         {/* Upcoming Tools */}
         {[

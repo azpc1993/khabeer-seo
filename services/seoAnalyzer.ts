@@ -7,6 +7,7 @@ export interface Recommendation {
   title: string;
   reason: string;
   impact: string;
+  fix: string;
   priority: Priority;
   actionType: 'optimize_desc' | 'generate_alt' | 'suggest_h1' | 'keyword_fix';
 }

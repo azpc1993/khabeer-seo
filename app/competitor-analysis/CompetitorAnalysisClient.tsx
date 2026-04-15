@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Search, Loader2, AlertCircle, CheckCircle2, XCircle, TrendingUp, BarChart3, FileText, Image as ImageIcon, Type, Link as LinkIcon } from 'lucide-react';
+import { ArrowRight, Search, Loader2, AlertCircle, CheckCircle2, XCircle, TrendingUp, BarChart3, FileText, Image as ImageIcon, Type, Link as LinkIcon, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { z } from 'zod';
 import { useNotificationsStore } from '@/store/notificationsStore';
+import { decodeUnicode } from '@/utils/unicode';
+import { normalizeArabicSeoTerms } from '@/utils/arabicNormalizer';
 
 const AnalysisResultSchema = z.object({
   score: z.number(),
@@ -57,6 +59,14 @@ export default function CompetitorAnalysisClient() {
       }
       const compData = await compRes.json();
       
+      const safeText = (text: string) => normalizeArabicSeoTerms(decodeUnicode(text || ''));
+      
+      if (compData.keywords) {
+        if (compData.keywords.primary) compData.keywords.primary = compData.keywords.primary.map(safeText);
+        if (compData.keywords.lsi) compData.keywords.lsi = compData.keywords.lsi.map(safeText);
+        if (compData.keywords.missing) compData.keywords.missing = compData.keywords.missing.map(safeText);
+      }
+      
       try {
         const validatedCompData = AnalysisResultSchema.parse(compData);
         setCompetitorResult(validatedCompData);
@@ -76,6 +86,12 @@ export default function CompetitorAnalysisClient() {
           throw new Error(errorData?.error || 'فشل تحليل رابط موقعك');
         }
         const userData = await userRes.json();
+        
+        if (userData.keywords) {
+          if (userData.keywords.primary) userData.keywords.primary = userData.keywords.primary.map(safeText);
+          if (userData.keywords.lsi) userData.keywords.lsi = userData.keywords.lsi.map(safeText);
+          if (userData.keywords.missing) userData.keywords.missing = userData.keywords.missing.map(safeText);
+        }
         
         try {
           const validatedUserData = AnalysisResultSchema.parse(userData);
@@ -280,15 +296,18 @@ export default function CompetitorAnalysisClient() {
               <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
                 <div className="space-y-6">
                   <div>
-                    <p className="text-sm font-bold text-slate-500 mb-3">الكلمات الأساسية (Primary Keywords):</p>
+                    <p className="text-sm font-bold text-slate-500 mb-3">الكلمات المفتاحية الأكثر تكراراً:</p>
                     <div className="flex flex-wrap gap-2">
-                      {competitorResult.keywords?.primary?.map((kw, i) => (
-                        <span key={i} className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl text-sm font-bold border border-indigo-100 dark:border-indigo-800/30">{kw}</span>
+                      {competitorResult.topKeywords?.slice(0, 10).map((kw, i) => (
+                        <div key={i} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl text-sm font-bold border border-indigo-100 dark:border-indigo-800/30">
+                          <span>{kw.word}</span>
+                          <span className="bg-indigo-100 dark:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-xs px-2 py-0.5 rounded-lg">{kw.count}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-500 mb-3">الكلمات الثانوية (LSI Keywords):</p>
+                    <p className="text-sm font-bold text-slate-500 mb-3">كلمات مقترحة (LSI):</p>
                     <div className="flex flex-wrap gap-2">
                       {competitorResult.keywords?.lsi?.map((kw, i) => (
                         <span key={i} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-700">{kw}</span>
@@ -421,6 +440,15 @@ export default function CompetitorAnalysisClient() {
                     <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
                       <p className="font-bold mb-1">4. استهداف الكلمات المفقودة</p>
                       <p className="text-purple-100 text-sm">استخدم الكلمات المفتاحية التي يركز عليها المنافس، وأضف كلمات LSI إضافية لتغطية أشمل.</p>
+                    </div>
+
+                    <div className="pt-4 mt-4 border-t border-white/20">
+                      <Link href={{ pathname: '/', query: { tab: 'generate', competitor: competitorResult.topKeywords?.slice(0, 10).map((k: { keyword: string }) => k.keyword).join('، ') } }} passHref>
+                        <button className="w-full bg-white text-purple-700 hover:bg-slate-50 px-6 py-3 rounded-xl font-black shadow-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+                          <Sparkles className="w-5 h-5" />
+                          توليد محتوى يتفوق على المنافس
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

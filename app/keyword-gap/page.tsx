@@ -1,11 +1,6 @@
-import dynamic from 'next/dynamic';
+'use client';
 
-const KeywordGapClient = dynamic(() => import('./KeywordGapClient'));
-
-export const metadata = {
-  title: 'Keyword Gap Tool | أداة تحليل الفجوة',
-  description: 'مقارنة صفحة المستخدم مع صفحة المنافس لاكتشاف الكلمات المفتاحية المفقودة والفرص.',
-};
+import KeywordGapClient from './KeywordGapClient';
 
 export default function KeywordGapPage() {
   return <KeywordGapClient />;

@@ -95,6 +95,7 @@ export async function POST(req: Request) {
         title: "إضافة وصف ميتا (Meta Description)",
         reason: "الصفحة تفتقر لوصف تعريفي يظهر في نتائج البحث.",
         impact: "يرفع نسبة النقر (CTR) ويحسن ترتيب الصفحة",
+        fix: "اكتب وصفاً جذاباً يتضمن الكلمة المفتاحية الأساسية بطول 140-155 حرفاً.",
         priority: "High",
         actionType: "optimize_desc"
       });
@@ -106,6 +107,7 @@ export async function POST(req: Request) {
         title: "إضافة نصوص Alt للصور",
         reason: `يوجد ${imagesWithoutAlt} صور لا تحتوي على وصف بديل لمحركات البحث.`,
         impact: "تحسين الأرشفة في بحث الصور من جوجل",
+        fix: "أضف خاصية alt=\"وصف الصورة\" لكل صورة، وتأكد من تضمين كلمات مفتاحية ذات صلة بشكل طبيعي.",
         priority: "Medium",
         actionType: "generate_alt"
       });
@@ -117,6 +119,7 @@ export async function POST(req: Request) {
         title: "إضافة عنوان رئيسي H1",
         reason: "الصفحة لا تحتوي على عنوان H1 رئيسي يوضح محتواها لمحركات البحث.",
         impact: "مهم جداً لفهم محرك البحث لموضوع الصفحة",
+        fix: "أضف وسم <h1> واحد فقط في أعلى الصفحة يحتوي على الكلمة المفتاحية الأساسية.",
         priority: "High",
         actionType: "suggest_h1"
       });
@@ -128,6 +131,7 @@ export async function POST(req: Request) {
         title: "زيادة طول المحتوى",
         reason: `المحتوى الحالي (${wordCount} كلمة) قصير جداً.`,
         impact: "المحتوى الأطول يميل للترتيب بشكل أفضل",
+        fix: "أضف المزيد من التفاصيل، الشروحات، أو الأسئلة الشائعة للوصول إلى 500 كلمة على الأقل.",
         priority: "Medium",
         actionType: "keyword_fix"
       });

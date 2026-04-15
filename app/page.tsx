@@ -1,7 +1,14 @@
-import dynamic from 'next/dynamic';
+'use client';
 
-const PageClient = dynamic(() => import('./PageClient'));
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
+const PageClient = dynamic(() => import('./PageClient'), { ssr: false });
 
 export default function Page() {
-  return <PageClient />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PageClient />
+    </Suspense>
+  );
 }

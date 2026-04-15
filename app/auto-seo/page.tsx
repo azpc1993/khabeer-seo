@@ -1,4 +1,6 @@
-import { AutoSeoEngine } from '@/components/AutoSeoEngine';
+'use client';
+
+import AutoSeoEngine from '@/components/AutoSeoEngine';
 
 export default function AutoSeoPage() {
   return (

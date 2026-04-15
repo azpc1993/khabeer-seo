@@ -160,6 +160,9 @@ const SeoVisualizer: React.FC<Props> = ({ data, onActionClick }) => {
               <div className="space-y-1">
                 <p className="text-xs text-slate-500 leading-relaxed"><span className="text-slate-400 font-semibold">السبب:</span> {rec.reason}</p>
                 <p className="text-xs text-green-600 leading-relaxed font-medium"><span className="text-slate-400">التأثير:</span> {rec.impact}</p>
+                {rec.fix && (
+                  <p className="text-xs text-blue-600 leading-relaxed font-medium"><span className="text-slate-400">طريقة الإصلاح:</span> {rec.fix}</p>
+                )}
               </div>
             </div>
           ))}
